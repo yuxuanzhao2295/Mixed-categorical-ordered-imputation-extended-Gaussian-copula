@@ -1,6 +1,13 @@
 # setwd('~/Documents/GitHub/Mixed-categorical-ordered-imputation-extended-Gaussian-copula')
 source('helper_func_call.R')
+source('func_EGC.R')
 
+to_nearest_ord <- function(x, ords=NULL, xobs=NULL){
+  if (is.null(ords)) ords = unique(xobs[!is.na(xobs)])
+  ords[which.min(abs(x - ords))]
+}
+
+#  install_github("udellgroup/gcimputeR")
 
 # Ordinal versus Nominal? NO
 call_missForest <- function(n_level=20, verbose=FALSE){
@@ -138,7 +145,7 @@ call_baseline <- function(n_level = 20){
       if (j %in% cat_index){
         Ximp[m,j] = majority_vote(xobs)
       }else if (j %in% ord_index){
-        Ximp[m,j] = gcimputeR::to_nearest_ord(median(xobs), ords = unique(xobs))
+        Ximp[m,j] = to_nearest_ord(median(xobs), ords = unique(xobs))
       }else{
         Ximp[m,j] = median(xobs)
       }

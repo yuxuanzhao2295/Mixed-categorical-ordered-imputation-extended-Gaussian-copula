@@ -112,16 +112,19 @@ is_mask_of <- function(Xmask, X){
 test_at_best_para <- function(allres_list, eval_name){
   summary_list = map(allres_list, colMeans)
   best_para = names(which.min(summary_list[[eval_name]]))
-  test_name = map_lgl(names(summary_list), ~ grepl('test', .x, fixed = TRUE))
+  names_use = names(summary_list)
+  test_name = map_lgl(names_use, ~ grepl('test', .x, fixed = TRUE))
+  keep_name = c(names_use[test_name], 'time')
   #test_name = c('test_all', 'test_cat', 'time')
-  e = map(allres_list[test_name], ~ unname(.x[,best_para]))
-  e[['time']] = unname(drop(allres_list[['time']]))
+  e = map(allres_list[keep_name], ~ unname(.x[,best_para]))
+  #e[['time']] = unname(drop(allres_list[['time']]))
   list(result = e, best_para = best_para)
 }
 
 test_at_best <- function(allres_list){
-  list(bestall = test_at_best_para(allres_list, 'val_all')$result,
-       bestcat = test_at_best_para(allres_list, 'val_cat')$result)
+  r = list(bestall = test_at_best_para(allres_list, 'val_all')$result,
+           bestcat = test_at_best_para(allres_list, 'val_cat')$result)
+  r
 }
 
 one_hot_matrix <- function(X, cat_index){
@@ -175,4 +178,38 @@ one_hot_vec <- function(x, K){
   xencoded[mis,]=NA
   xencoded[matrix(ncol = 2, c(1:n, x))] = 1
   xencoded
+}
+
+cal_misclass = function(xhat, xobs, xtrue){
+  xobs = as.numeric(as.matrix(xobs))
+  xhat = as.numeric(as.matrix(xhat))
+  xtrue = as.numeric(as.matrix(xtrue))
+  if (is.null(xobs)) loc = !is.na(xtrue) else loc = is.na(xobs) & (!is.na(xtrue))
+  1 - mean(xhat[loc] == xtrue[loc])
+}
+
+cal_misclass_scaled = function(xhat, xobs, xtrue, base_from_true = FALSE, reduce =TRUE){
+  xobs = to_numeric_matrix(xobs)
+  xhat = to_numeric_matrix(xhat)
+  xtrue = to_numeric_matrix(xtrue)
+
+  if (base_from_true) xbase = xtrue else xbase = xobs
+  base = apply(xbase, 2, function(x) names(which.max(table(x))))
+  base = as.integer(base)
+  p = ncol(xhat)
+  err = numeric(p)
+  n = nrow(xobs)
+
+  for (j in 1:p){
+    err_base = cal_misclass(xhat = rep(base[j],n), xobs = xobs[,j], xtrue = xtrue[,j])
+    err[j] = cal_misclass(xhat = xhat[,j], xobs = xobs[,j], xtrue = xtrue[,j])/err_base
+  }
+
+  remove = is.infinite(err)
+  if (any(remove)){
+    #stop('Perfect median imputation appears')
+    warning(paste0('Perfect majority vote imputation appears in ', sum(remove), ' vars'))
+  }
+  if (reduce) err = mean(err[!remove])
+  err
 }

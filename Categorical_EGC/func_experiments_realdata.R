@@ -22,7 +22,8 @@ test_data_openml <- function(func_calls, dname, mfrac = 0.2, mask_type = 'MCAR',
   Res
 }
 
-test_data_openml_bunch <- function(func_calls, dnames, ...){
+test_data_openml_bunch <- function(func_calls, dnames = NULL, ...){
+  if (is.null(dnames)) dnames = c("abalone", "heart", "cmc", "creditg", "credita", "colic")
   r = list()
   for (dname in dnames){
     r[[dname]] = test_data_openml(func_calls, dname = dname, ...)

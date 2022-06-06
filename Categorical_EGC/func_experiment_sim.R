@@ -37,7 +37,9 @@ test_sim_mixed <- function(func_calls, K=6, mask_fraction=0.3, mask_type = 'MCAR
                                                     f_eval=partial(eval_cont_ord_cat, average = TRUE),
                                                     use_addargs = TRUE, addargs = addargs)
     }
-    if (name %in% c('imputeFAMD', 'softImpute')) rall = map(Res, summarize_mlutiple_fcall)
+    if (name %in% c('imputeFAMD', 'softImpute')){
+      rall = map(Res, summarize_mlutiple_fcall)
+    }
     else rall = map(Res, summarize_single_fcall)
     Res_all[[name]] = rall
     print(paste0('finish', name))

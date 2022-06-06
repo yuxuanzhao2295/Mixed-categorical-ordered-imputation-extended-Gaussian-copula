@@ -92,17 +92,18 @@ imputation_pipeline_rep <- function(seed, f_data, f_imp, f_eval, use_addargs = T
     xlist
   }
 
-
+  r_time  = as.numeric(s2-s1, units = 'secs')
+  if (!is.null(out$time_add)) r_time = r_time + out$time_add
   if (!is.null(out$Ximp)){
     r = eval_test_and_val(append_out(out))
+    r[['time']] = r_time
   }else{
     r = purrr::map(out, ~ eval_test_and_val(append_out(list(Ximp = .x))))
     r = purrr::transpose(r)
     r = purrr::map(r, unlist)
+    r[['time']] = rep(r_time, length(out))
+    names(r[['time']]) = names(out)
   }
-
-  r[['time']] = as.numeric(s2-s1, units = 'secs')
-  if (!is.null(out$time_add)) r[['time']] = r[['time']] + out$time_add
 
   r
 }

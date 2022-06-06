@@ -6,6 +6,8 @@ func_calls  = list(EGC_our = call_gcimpute_nominal(),
                    imputeFAMD = call_imputeFAMD(rank = c(1,3,5,7,9)),
                    softImpute = call_softimpute_nominal())
 
+func_calls = list(softImpute = call_softimpute_nominal())
+
 realdata_report = run_data_openml_bunch(func_calls, nrep = 10, mfrac = 0.2)
 realdata_report_df = to_DF(openml_raw_to_perdata(realdata_report))
 
